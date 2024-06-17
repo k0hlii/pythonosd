@@ -7,12 +7,15 @@ import board
 from osd import OSD
 import queue
 import threading
+from flask import Flask, jsonify
 
 
 API_ENDPOINT = "http://localhost:3000/api/sendHumTemp"
 
 # Initialize DHT11 device, with data pin connected to GPIO4 (BCM numbering, corresponds to physical pin 7)
 dht_device = adafruit_dht.DHT11(board.D4)  # Use board.D4 for correct pin object
+
+data = {"temperature": None, "humidity": None}
 
 # Create a queue
 q = queue.Queue()
@@ -65,6 +68,21 @@ GPIO.add_event_detect(24, GPIO.RISING, callback=cycle_buttons_backward, bounceti
 
 # Add a short delay to ensure the setup is completed before adding event detection
 time.sleep(1)
+
+@app.route('/getTemperature', methods=['GET'])
+def get_temperature():
+    return jsonify({"temperature": data["temperature"]})
+
+@app.route('/getHumidity', methods=['GET'])
+def get_humidity():
+    return jsonify({"humidity": data["humidity"]})
+
+def flask_thread():
+    app.run(host='0.0.0.0', port=5000)
+
+# Start the Flask server in a separate thread
+flask_thread = threading.Thread(target=flask_thread)
+flask_thread.start()
 
 def check_last_button_press():
     global last_button_press

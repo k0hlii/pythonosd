@@ -73,7 +73,7 @@ class OSD:
         label = customtkinter.CTkLabel(master=self.tabview.tab("SmartMirror"), text="Modus", fg_color="transparent", bg_color="transparent", font=("Aptos", 18))
         label.place(anchor=customtkinter.W, relx=0.03, rely=0.3)
 
-        modes = ["Dashboard", "WordClock", "MillionTimes", "SolarSystem", "FlipDot"]
+        modes = ["Simple", "Complex", "Jokes"]
 
         for i in range(5):
             button = customtkinter.CTkButton(master=self.tabview.tab("SmartMirror"), text=f"{modes[i]}", command=self.button_function, width=40)
