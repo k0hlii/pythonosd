@@ -1,36 +1,29 @@
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify
 from flask_cors import CORS
 import requests
 import base64
+import adafruit_dht
+import board
 
 app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
 
-CLIENT_ID = 'fa8e9c3ca1a845658a888ee89b0ff4f1'
-CLIENT_SECRET = 'b0d568ffbe5e42bfb4ee7f33a9f96313'
+dht_device = adafruit_dht.DHT11(board.D4)  # Use board.D4 for correct pin object
 
-@app.route('/authenticate', methods=['POST'])
-def authenticate():
-    auth_header = base64.b64encode(f'{CLIENT_ID}:{CLIENT_SECRET}'.encode('utf-8')).decode('utf-8')
-    headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': f'Basic {auth_header}'
-    }
-    data = {
-        'grant_type': 'client_credentials'
-    }
-    response = requests.post('https://accounts.spotify.com/api/token', headers=headers, data=data)
-    return jsonify(response.json()), response.status_code
+@app.route('/getTemperature', methods=['GET'])
+def get_temperature():
+    temperature_c = dht_device.temperature
+    # while temperature_c is None:
+    #     temperature_c = dht_device.temperature
+    return jsonify({"temperature": str(temperature_c)})
 
-@app.route('/currently-playing', methods=['GET'])
-def currently_playing():
-    access_token = request.headers.get('Authorization').split(' ')[1]
-    headers = {
-        'Authorization': f'Bearer {access_token}'
-    }
-    response = requests.get('https://api.spotify.com/v1/me/player/currently-playing', headers=headers)
-    return jsonify(response.json()), response.status_code
+@app.route('/getHumidity', methods=['GET'])
+def get_humidity():
+    humidity = dht_device.humidity
+    # while humidity is None:
+    #     humidity = dht_device.humidity
 
+    return jsonify({"humidity": str(humidity)})
 
 if __name__ == '__main__':
-    app.run(port=5000)
+    app.run(host='0.0.0.0', port=5000)
